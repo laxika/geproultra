@@ -9,6 +9,11 @@ import java.awt.Toolkit;
 import java.awt.TrayIcon;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.xml.parsers.ParserConfigurationException;
+import org.xml.sax.SAXException;
 
 /**
  *
@@ -32,7 +37,16 @@ public class initTrayIcon {
             item.addActionListener(new ActionListener() {
 
                 public void actionPerformed(ActionEvent e) {
-                    Main.frame.setVisible(true);
+                    try {
+                        Main main = new Main();
+                        main.setVisible(true);
+                    } catch (ParserConfigurationException ex) {
+                        Logger.getLogger(initTrayIcon.class.getName()).log(Level.SEVERE, null, ex);
+                    } catch (SAXException ex) {
+                        Logger.getLogger(initTrayIcon.class.getName()).log(Level.SEVERE, null, ex);
+                    } catch (IOException ex) {
+                        Logger.getLogger(initTrayIcon.class.getName()).log(Level.SEVERE, null, ex);
+                    }
                 }
             });
 

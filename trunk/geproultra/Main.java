@@ -20,14 +20,14 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
+import org.jvnet.substance.skin.SubstanceBusinessBlackSteelLookAndFeel;
+
 public class Main extends JFrame {
 
     public static String projectLongName = "Grand Exchange Pro Ultra";
     public static String projectShortName = "GEPro Ultra";
     public static String projectVersion = "0.3b";
-    
-    public static JFrame frame = new JFrame();
-
+    public static boolean debug = true;
     JTable table;
     DefaultTableModel model;
     JPanel buttonPanel;
@@ -58,11 +58,11 @@ public class Main extends JFrame {
                 NodeList itemNeedElement2 = fstNmElmnt.getChildNodes();
 
                 itemId2 = Integer.valueOf(((Node) itemIdElement.item(0)).getNodeValue()).intValue();
-                //System.out.println("READ! itemId2: " + itemId2 + " itemId: " + itemId);
+
                 if (itemId2 == itemId) {
                     itemMedPrice = Integer.valueOf(((Node) itemNeedElement2.item(0)).getNodeValue()).intValue();
                 }
-            //System.out.println("READ! itemId2: "+itemId2+" medprice: "+itemMedPrice);
+
             }
         }
 
@@ -70,10 +70,11 @@ public class Main extends JFrame {
     }
 
     public Main() throws ParserConfigurationException, SAXException, IOException {
-        //Add the system tray
+        super("GE Pro Ultra");
 
-        //  Create table
-        Object[][] data = {};
+        this.setLayout(new BorderLayout());
+
+        Object[][] data = new Object[100][6];
 
         int itemId = 0;
         int firstIndigents = 0;
@@ -84,60 +85,6 @@ public class Main extends JFrame {
         int resourceprice = 0;
         int profit = 0;
         String itemName = "";
-
-        String[] columnNames = {"Picture", "Name", "Resources' price", "Profit", "Member", "Needed abilities"};
-        model = new DefaultTableModel(data, columnNames) {
-
-            @Override
-            public Class getColumnClass(int column) {
-                Class returnValue;
-                if ((column >= 0) && (column < getColumnCount())) {
-                    returnValue = getValueAt(0, column).getClass();
-                } else {
-                    returnValue = Object.class;
-                }
-                return returnValue;
-            }
-        };
-        table = new JTable(model) {
-
-            @Override
-            public Class getColumnClass(int column) {
-                return getValueAt(0, column).getClass();
-            }
-
-            @Override
-            public boolean isCellEditable(int row, int column) {
-                return false;
-            }
-        };
-        table.getColumnModel().getColumn(5).setCellRenderer(new TextAreaRenderer());
-        RowSorter<TableModel> sorter = new TableRowSorter<TableModel>(model);
-        table.setRowSorter(sorter);
-        table.setAutoResizeMode(JTable.AUTO_RESIZE_NEXT_COLUMN);
-        TableColumn col0 = table.getColumnModel().getColumn(0);
-        col0.setPreferredWidth(50);
-        TableColumn col1 = table.getColumnModel().getColumn(1);
-        col1.setPreferredWidth(200);
-        TableColumn col2 = table.getColumnModel().getColumn(2);
-        col2.setPreferredWidth(100);
-        TableColumn col3 = table.getColumnModel().getColumn(3);
-        col3.setPreferredWidth(50);
-        TableColumn col4 = table.getColumnModel().getColumn(4);
-        col4.setPreferredWidth(50);
-        TableColumn col5 = table.getColumnModel().getColumn(5);
-        col5.setPreferredWidth(300);
-
-        table.setAutoCreateColumnsFromModel(false);
-
-        table.setRowHeight(50);
-        table.putClientProperty("terminateEditOnFocusLost", Boolean.TRUE);
-
-        //  Add table and a Button panel to the frame
-
-        JScrollPane scrollPane = new JScrollPane(table);
-        //getContentPane().add(scrollPane);
-        frame.add(scrollPane);
 
         File file = new File("config/tableConfig.xml");
         DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
@@ -182,8 +129,6 @@ public class Main extends JFrame {
                 // add the new row to the table
                 itemId = Integer.valueOf(((Node) itemIdElement.item(0)).getNodeValue()).intValue();
                 itemName = ((Node) itemNameElement.item(0)).getNodeValue();
-                //initTrayIcon.displayMessage("Tester!", "Some action performed", TrayIcon.MessageType.INFO);
-                //initTrayIcon.trayIcon.displayMessage("Update the GE info", "Get info from " + itemName + "!", TrayIcon.MessageType.INFO);
                 firstIndigents = Integer.valueOf(((Node) itemNeedElement.item(0)).getNodeValue()).intValue();
                 secondIndigents = Integer.valueOf(((Node) itemNeedElement2.item(0)).getNodeValue()).intValue();
                 itemprice = getPrice(itemId);
@@ -191,14 +136,69 @@ public class Main extends JFrame {
                 secondprice = getPrice(secondIndigents);
                 resourceprice = firstprice + secondprice;
                 profit = itemprice - resourceprice;
-                System.out.println("Itemprice: " + itemprice + " First indigent: " + firstIndigents + " second: " + secondIndigents + " firstPrice: " + firstprice + " secondP: " + secondprice + " profit: " + profit);
-                //ImageIcon icon = new ImageIcon("images/" + itemId + ".gif", "a pretty but meaningless splat");
-                model.addRow(new Object[]{new ImageIcon("images/geicons/" + itemId + ".gif"), itemName, resourceprice, profit, ((Node) itemMemberElement.item(0)).getNodeValue(), ((Node) itemAbilityElement.item(0)).getNodeValue()});
-
+                data[s][0] = new ImageIcon("images/geicons/" + itemId + ".gif");
+                data[s][1] = itemName;
+                data[s][2] = resourceprice;
+                data[s][3] = profit;
+                data[s][4] = ((Node) itemMemberElement.item(0)).getNodeValue();
+                data[s][5] = ((Node) itemAbilityElement.item(0)).getNodeValue();
+                if (debug) {
+                    System.out.println("Itemprice: " + itemprice + " First indigent: " + firstIndigents + " second: " + secondIndigents + " firstPrice: " + firstprice + " secondP: " + secondprice + " profit: " + profit);
+                }
             }
 
         }
-    //frame.add(table);
+
+        String[] columnNames = {"Picture", "Name", "Resources' price", "Profit", "Member", "Needed abilities"};
+        model = new DefaultTableModel(data, columnNames) {
+
+            @Override
+            public Class getColumnClass(int column) {
+                Class returnValue;
+                if ((column < getColumnCount())) {
+                    returnValue = getValueAt(0, column).getClass();
+                } else {
+                    returnValue = Object.class;
+                }
+                return returnValue;
+            }
+        };
+        table = new JTable(model) {
+
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
+        table.getColumnModel().getColumn(5).setCellRenderer(new TextAreaRenderer());
+        RowSorter<TableModel> sorter = new TableRowSorter<TableModel>(model);
+        table.setRowSorter(sorter);
+        table.setAutoResizeMode(JTable.AUTO_RESIZE_NEXT_COLUMN);
+        TableColumn col0 = table.getColumnModel().getColumn(0);
+        col0.setPreferredWidth(50);
+        TableColumn col1 = table.getColumnModel().getColumn(1);
+        col1.setPreferredWidth(200);
+        TableColumn col2 = table.getColumnModel().getColumn(2);
+        col2.setPreferredWidth(100);
+        TableColumn col3 = table.getColumnModel().getColumn(3);
+        col3.setPreferredWidth(50);
+        TableColumn col4 = table.getColumnModel().getColumn(4);
+        col4.setPreferredWidth(50);
+        TableColumn col5 = table.getColumnModel().getColumn(5);
+        col5.setPreferredWidth(300);
+
+        table.setAutoCreateColumnsFromModel(false);
+
+        table.setRowHeight(50);
+        table.putClientProperty("terminateEditOnFocusLost", Boolean.TRUE);
+
+        JScrollPane scrollPane = new JScrollPane(table);
+        this.add(scrollPane);
+
+        this.setLocationRelativeTo(null);
+        this.setDefaultCloseOperation(HIDE_ON_CLOSE);
+        this.setResizable(false);
+        this.setSize(761, 400);
     }
 
     static class ShowMessageListener implements ActionListener {
@@ -225,41 +225,30 @@ public class Main extends JFrame {
     }
 
     public static void main(String[] args) throws ParserConfigurationException, SAXException, IOException, AWTException {
-        final JFrame frame1 = new JFrame("Loading...");
-        frame1.setUndecorated(true);
-        //frame1.getContentPane().add(emptyLabel, BorderLayout.CENTER);
-        frame1.setSize(288, 300);
-        frame1.setLocationRelativeTo(null);
-        ImageIcon icon = new ImageIcon("images/loading2.gif");
-        JLabel label1 = new JLabel("Image and Text", icon, JLabel.CENTER);
-        frame1.add(label1, BorderLayout.SOUTH);
-//        JLabel loading = new JLabel("It is loading...");
-//        frame1.add(loading, BorderLayout.SOUTH);
-
-//Where the GUI is constructed:
-        frame1.setVisible(true);
         dumpPrices initDumps = new dumpPrices();
+        SwingUtilities.invokeLater(new Runnable() {
 
+            public void run() {
+                try {
+                    UIManager.setLookAndFeel(new SubstanceBusinessBlackSteelLookAndFeel());
+                    JFrame.setDefaultLookAndFeelDecorated(true);
+                    Main main = new Main();
+                    main.setVisible(true);
+                } catch (UnsupportedLookAndFeelException ex) {
+                    Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (ParserConfigurationException ex) {
+                    Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (SAXException ex) {
+                    Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (IOException ex) {
+                    Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+        });
         try {
             new initTrayIcon();
         } catch (AWTException ex) {
             Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
         }
-
-        //final Main frame =
-        new Main();
-        frame.setDefaultCloseOperation(HIDE_ON_CLOSE);
-        frame.setResizable(false);
-        frame.setSize(761, 400);
-        frame.setTitle(projectLongName+" "+projectVersion+" Created by Laxika");
-        frame.setLocationRelativeTo(null);
-        frame.setUndecorated(true);
-        frame.setDefaultLookAndFeelDecorated(true);
-        //frame.setIconImage(new ImageIcon(imgURL).getImage());
-        frame.getRootPane().setWindowDecorationStyle(JRootPane.PLAIN_DIALOG);
-
-        //JFrame frame1 = new JFrame("Loading...");
-        frame1.setVisible(false);
-        frame.setVisible(true);
     }
 }
